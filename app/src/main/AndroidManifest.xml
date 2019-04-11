@@ -13,7 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".ChatScreen"></activity>
+        <activity android:name=".ChatRoom"></activity>
+        <activity android:name=".ChatScreen" />
         <activity android:name=".LogIn" />
 
         <meta-data

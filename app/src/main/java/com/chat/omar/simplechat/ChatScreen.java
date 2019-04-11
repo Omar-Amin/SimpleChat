@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -42,6 +43,15 @@ public class ChatScreen extends AppCompatActivity {
 
         chatRooms.setAdapter(adapter);
 
+        chatRooms.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent(ChatScreen.this,ChatRoom.class);
+                intent.putExtra("Chatroom",i);
+
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

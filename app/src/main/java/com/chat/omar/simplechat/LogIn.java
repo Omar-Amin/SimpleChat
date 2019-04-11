@@ -58,8 +58,6 @@ public class LogIn extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d("FacebookLogin", "facebook:onSuccess:" + loginResult);
-                findViewById(R.id.buttonFacebookLogin).setVisibility(View.GONE);
-                findViewById(R.id.buttonGoogleLogin).setVisibility(View.GONE);
                 handleFacebookAccessToken(loginResult.getAccessToken());
             }
 
@@ -77,22 +75,7 @@ public class LogIn extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.buttonFacebookSignout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fireAuth.signOut();
-                LoginManager.getInstance().logOut();
 
-                updateUI(null);
-            }
-        });
-
-        findViewById(R.id.buttonGoogleSignout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                signOut();
-            }
-        });
 
         findViewById(R.id.buttonGoogleLogin).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,8 +109,6 @@ public class LogIn extends AppCompatActivity {
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 assert account != null;
-                findViewById(R.id.buttonFacebookLogin).setVisibility(View.GONE);
-                findViewById(R.id.buttonGoogleLogin).setVisibility(View.GONE);
                 firebaseAuthWithGoogle(account);
             } catch (ApiException e) {
                 // Google Sign In failed, update UI appropriately
@@ -163,20 +144,6 @@ public class LogIn extends AppCompatActivity {
         updateUI(user);
     }
 
-    private void signOut() {
-        // Firebase sign out
-        fireAuth.signOut();
-
-        // Google sign out
-        googleSignInClient.signOut().addOnCompleteListener(this,
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        updateUI(null);
-                    }
-                });
-    }
-
     private void handleFacebookAccessToken(AccessToken token) {
 
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
@@ -199,25 +166,10 @@ public class LogIn extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            for (UserInfo userInfo : user.getProviderData()) {
-                if (userInfo.getProviderId().equals("facebook.com")) {
-                    findViewById(R.id.buttonFacebookLogin).setVisibility(View.GONE);
-                    findViewById(R.id.buttonFacebookSignout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.buttonGoogleLogin).setVisibility(View.GONE);
-                    return;
-                }
-            }
-            findViewById(R.id.buttonFacebookLogin).setVisibility(View.GONE);
-            findViewById(R.id.buttonGoogleLogin).setVisibility(View.GONE);
-            findViewById(R.id.buttonGoogleSignout).setVisibility(View.VISIBLE);
-        } else {
-            System.out.println("WRONG");
-            findViewById(R.id.buttonFacebookLogin).setVisibility(View.VISIBLE);
-            findViewById(R.id.buttonFacebookSignout).setVisibility(View.GONE);
-            findViewById(R.id.buttonGoogleLogin).setVisibility(View.VISIBLE);
-            findViewById(R.id.buttonGoogleSignout).setVisibility(View.GONE);
+            Intent intent = new Intent(LogIn.this, ChatScreen.class);
+            LogIn.this.startActivity(intent);
+            LogIn.this.finish();
         }
     }
-
 
 }

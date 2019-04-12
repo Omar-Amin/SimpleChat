@@ -19,7 +19,7 @@ import java.util.List;
 
 import static com.facebook.FacebookSdk.getApplicationContext;
 
-public class MessageRecyclerView extends RecyclerView.Adapter {
+public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerView.RCViewHolder> {
 
     private Context context;
     private List<Room> room;
@@ -31,37 +31,26 @@ public class MessageRecyclerView extends RecyclerView.Adapter {
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MessageRecyclerView.RCViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view;
-        System.out.println("ONCREAT");
         if(viewType == 1){
             view = LayoutInflater.from(context).inflate(R.layout.send_layout,parent,false);
-            System.out.println("AFTER CREATING");
-            return new SendViewHolder(view);
+            return new MessageRecyclerView.RCViewHolder(view);
         }else{
             view = LayoutInflater.from(context).inflate(R.layout.receive_layout,parent,false);
-            System.out.println("AFTER CREATING");
-            return new ReceiveViewHolder(view);
+            return new MessageRecyclerView.RCViewHolder(view);
         }
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        System.out.println("HALLO");
-        switch (holder.getItemViewType()) {
-            case 1:
-                System.out.println("RIGTH");
-                SendViewHolder svh = (SendViewHolder) holder;
-                svh.bind(room.get(position));
-                System.out.println("IN BINDVIEWHOLDER");
-                break;
-            case 0:
-                System.out.println("LEFT");
-                ReceiveViewHolder rvh = (ReceiveViewHolder) holder;
-                rvh.bind(room.get(position));
-                System.out.println("IN BINDVIEWHOLDER");
-                break;
+    public void onBindViewHolder(RCViewHolder holder, int position) {
+
+        holder.msgTxt.setText(room.get(position).getMsg());
+        if(holder.name != null){
+            holder.name.setText(room.get(position).getSender());
         }
+        holder.time.setText(room.get(position).getDate());
+
     }
 
 
@@ -73,17 +62,31 @@ public class MessageRecyclerView extends RecyclerView.Adapter {
     @Override
     public int getItemViewType(int position) {
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        System.out.println("HALLO");
-        if(room.get(position).getSender().equals(firebaseUser.getUid())){
-            System.out.println("RIGTH");
+        if(room.get(position).getSuid().equals(firebaseUser.getUid())){
             return 1;
         }else {
-            System.out.println("LEFT");
             return 0;
         }
     }
 
-    private class SendViewHolder extends RecyclerView.ViewHolder {
+    public  class RCViewHolder extends RecyclerView.ViewHolder{
+
+        public TextView msgTxt, time,name;
+
+        public RCViewHolder (View itemView) {
+            super(itemView);
+            if(itemView.getId() == R.id.receive_layout){
+                msgTxt = itemView.findViewById(R.id.txt_receive);
+                time = itemView.findViewById(R.id.receive_time);
+                name = itemView.findViewById(R.id.receive_name);
+            }else if(itemView.getId() == R.id.send_layout){
+                msgTxt = itemView.findViewById(R.id.txt_send);
+                time = itemView.findViewById(R.id.send_time);
+            }
+        }
+    }
+
+/*    private class SendViewHolder extends RecyclerView.ViewHolder {
         TextView messageText, timeText;
 
         SendViewHolder(View itemView) {
@@ -109,7 +112,6 @@ public class MessageRecyclerView extends RecyclerView.Adapter {
         ReceiveViewHolder(View itemView) {
             super(itemView);
 
-
             System.out.println("RECEIVEVIEWHOLDER CONSTRUCTOR");
             msgTxt = itemView.findViewById(R.id.txt_receive);
             time = itemView.findViewById(R.id.receive_time);
@@ -126,5 +128,5 @@ public class MessageRecyclerView extends RecyclerView.Adapter {
             name.setText(message.getSender());
             System.out.println("LEAVING BINDER");
         }
-    }
+    }*/
 }

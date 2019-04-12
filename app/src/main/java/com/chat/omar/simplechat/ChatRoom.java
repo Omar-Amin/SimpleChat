@@ -1,6 +1,7 @@
 package com.chat.omar.simplechat;
 
 import android.content.Intent;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,8 +20,11 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.w3c.dom.Text;
 
+import java.security.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Calendar;
 
 public class ChatRoom extends AppCompatActivity {
 
@@ -33,6 +37,7 @@ public class ChatRoom extends AppCompatActivity {
     private ArrayList<Room> msgs;
     private MessageRecyclerView messageRecyclerView;
     private RecyclerView recyclerView;
+    private String uid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +65,16 @@ public class ChatRoom extends AppCompatActivity {
         }
 
         recyclerView = findViewById(R.id.room_message);
+        recyclerView.setHasFixedSize(true);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setStackFromEnd(true);
+        recyclerView.setLayoutManager(linearLayoutManager);
 
         assert user != null;
-        name = user.getUid();
+        name = user.getDisplayName();
+        uid = user.getUid();
 
-        userDB = rootDB.child("users").child(user.getUid());
+        userDB = rootDB.child("users").child(uid);
 
         userDB.addValueEventListener(new ValueEventListener() {
             @Override
@@ -84,7 +94,7 @@ public class ChatRoom extends AppCompatActivity {
                 TextView msgBox = findViewById(R.id.message_box);
                 String msg = msgBox.getText().toString();
                 if(!msg.equals("")){
-                    sendMsg(name,roomname,msg); //change to getUid??
+                    sendMsg(name,roomname,msg,uid); //change to getUid??
                 }
                 msgBox.setText("");
             }
@@ -93,21 +103,23 @@ public class ChatRoom extends AppCompatActivity {
         System.out.println(name);
     }
 
-    private void sendMsg(String sender,String chat,String msg){
+    private void sendMsg(String sender,String chat,String msg,String suid){
         DatabaseReference sendDB = rootDB;
 
         HashMap<String,String> hm = new HashMap<>();
         hm.put("sender",sender);
         hm.put("chat",chat); //TODO: work on this later
         hm.put("msg",msg);
-
-        sendDB.child("Chat").push().setValue(hm);
+        hm.put("suid",suid);
+        Date timeSent = Calendar.getInstance().getTime();
+        hm.put("date",timeSent.getHours() + ":" + timeSent.getMinutes());
+        sendDB.child(chat).push().setValue(hm);
     }
 
     private void receiveMsg(final String chat){
         msgs = new ArrayList<>();
 
-        userDB = FirebaseDatabase.getInstance().getReference("Chat");
+        userDB = FirebaseDatabase.getInstance().getReference(chat);
         userDB.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -115,13 +127,9 @@ public class ChatRoom extends AppCompatActivity {
                 for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
                     Room room = snapshot.getValue(Room.class);
                     assert room != null;
-                    if(room.getChat().equals(chat)){
-                        msgs.add(room);
-                    }
+                    msgs.add(room);
                     messageRecyclerView = new MessageRecyclerView(ChatRoom.this,msgs);
-                    System.out.println("MESSAGERECYLERVIEW SUCCESS");
-                    recyclerView.setLayoutManager(new LinearLayoutManager(ChatRoom.this));
-                    System.out.println("ADAPTER SUCCESS");
+                    recyclerView.setAdapter(messageRecyclerView);
                 }
             }
 

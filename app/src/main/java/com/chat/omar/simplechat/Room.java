@@ -5,14 +5,19 @@ public class Room {
     private String chat;
     private String msg;
     private String suid;
-    private String date;
+    private String time;
+    private String avatar;
 
     public Room() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public String getDate() {
-        return date;
+    public String getTime() {
+        return time;
+    }
+
+    public String getAvatar() {
+        return avatar;
     }
 
     public String getSuid() {

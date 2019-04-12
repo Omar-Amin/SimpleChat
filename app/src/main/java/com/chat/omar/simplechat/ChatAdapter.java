@@ -11,11 +11,12 @@ import android.widget.TextView;
 public class ChatAdapter extends BaseAdapter {
     private Context mContext;
     private String[]  Title;
-    private int[] imge;
+    private String[] description;
 
-    public ChatAdapter(Context context, String[] text1) {
-        mContext = context;
-        Title = text1;
+    public ChatAdapter(Context context, String[] text1,String[] description) {
+        this.mContext = context;
+        this.Title = text1;
+        this.description = description;
 
     }
 
@@ -39,11 +40,13 @@ public class ChatAdapter extends BaseAdapter {
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         View v;
         v = inflater.inflate(R.layout.listview_layout,viewGroup,false);
-        TextView title;
+        TextView title,descTitle;
         ImageView image;
+        descTitle = v.findViewById(R.id.descTitle);
         image = v.findViewById(R.id.imgIcon);
         title = v.findViewById(R.id.txtTitle);
         title.setText(Title[i]);
+        descTitle.setText(description[i]);
         image.setImageResource(R.drawable.chevronp);
         return v;
     }

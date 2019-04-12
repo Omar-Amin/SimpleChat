@@ -1,6 +1,7 @@
 package com.chat.omar.simplechat;
 
 import android.content.Intent;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,6 +20,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 public class ChatScreen extends AppCompatActivity {
     private FirebaseAuth fireAuth;
@@ -27,7 +34,7 @@ public class ChatScreen extends AppCompatActivity {
     private ChatAdapter adapter;
     private String[] listOfCR = {"School","Teachers","Students","Golf club"};
     private int chevron;
-    private String[] description = new String[]{"School chat","Teachers only chat","Students only chat","Golf chat"};
+    private String[] description = {"School chat, school only","Teachers only chat","Students only chat","Golf chat for everyone who plays golf"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +45,35 @@ public class ChatScreen extends AppCompatActivity {
 
         chatRooms = findViewById(R.id.listOfChat);
 
-        adapter = new ChatAdapter(this,listOfCR);
+        adapter = new ChatAdapter(this,listOfCR,description);
 
+        FirebaseDatabase fbase = FirebaseDatabase.getInstance();
+
+        for (String s:listOfCR) {
+            DatabaseReference roomDB = fbase.getReference(s);
+            roomDB.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    DataSnapshot snapshot = null;
+
+                    Iterable dsnap = dataSnapshot.getChildren();
+                    while (dsnap.iterator().hasNext()){
+                        snapshot = (DataSnapshot) dsnap.iterator().next();
+                    }
+                    try {
+                        Room room = snapshot.getValue(Room.class);
+                    }catch (NullPointerException e){
+                        System.out.println("Chat not used yet");
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
 
         chatRooms.setAdapter(adapter);
 

@@ -1,23 +1,19 @@
 package com.chat.omar.simplechat;
 
 import android.content.Context;
-import android.location.Location;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.List;
 
-import static com.facebook.FacebookSdk.getApplicationContext;
 
 public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerView.RCViewHolder> {
 
@@ -43,15 +39,35 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
     }
 
     @Override
-    public void onBindViewHolder(RCViewHolder holder, int position) {
-
-        holder.msgTxt.setText(room.get(position).getMsg());
+    public void onBindViewHolder(RCViewHolder holder, final int position) {
+        Room msg = room.get(position);
+        holder.msgTxt.setText(msg.getMsg());
+        holder.time.setText(msg.getTime());
         if(holder.name != null){
             holder.name.setText(room.get(position).getSender());
         }
-        holder.time.setText(room.get(position).getDate());
+        if(holder.avatar != null){
+            //Used library in order to get picture from url
+            Glide.with(context).load(msg.getAvatar()).into(holder.avatar);
+        }
 
     }
+
+/*    private class BackgroundThread extends AsyncTask<URL,Void,Drawable>{
+
+        @Override
+        protected Drawable doInBackground(URL... urls) {
+            Drawable d = null;
+            try {
+                System.out.println("HALLOO :" + urls);
+                InputStream inputStream = (InputStream) new URL(room.get(position).getAvatar()).getContent();
+                d = Drawable.createFromStream(inputStream,room.get(position).getAvatar());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return d;
+        }
+    }*/
 
 
     @Override
@@ -72,6 +88,7 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
     public  class RCViewHolder extends RecyclerView.ViewHolder{
 
         public TextView msgTxt, time,name;
+        public ImageView avatar;
 
         public RCViewHolder (View itemView) {
             super(itemView);
@@ -79,54 +96,11 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
                 msgTxt = itemView.findViewById(R.id.txt_receive);
                 time = itemView.findViewById(R.id.receive_time);
                 name = itemView.findViewById(R.id.receive_name);
+                avatar = itemView.findViewById(R.id.img_profile);
             }else if(itemView.getId() == R.id.send_layout){
                 msgTxt = itemView.findViewById(R.id.txt_send);
                 time = itemView.findViewById(R.id.send_time);
             }
         }
     }
-
-/*    private class SendViewHolder extends RecyclerView.ViewHolder {
-        TextView messageText, timeText;
-
-        SendViewHolder(View itemView) {
-            super(itemView);
-            System.out.println("SENDVIEWHOLDER CONSTRUCTOR");
-            messageText = itemView.findViewById(R.id.txt_send);
-            timeText = itemView.findViewById(R.id.send_time);
-            System.out.println("LEAVING SENDVIEWHOLDER CONSTRUCTOR");
-        }
-
-        void bind(Room message) {
-            System.out.println("BINDER");
-            messageText.setText(message.getMsg());
-
-            timeText.setText("Change this");
-            System.out.println("LEAVING BINDER");
-        }
-    }
-
-    private class ReceiveViewHolder extends RecyclerView.ViewHolder {
-        TextView msgTxt, time, name;
-
-        ReceiveViewHolder(View itemView) {
-            super(itemView);
-
-            System.out.println("RECEIVEVIEWHOLDER CONSTRUCTOR");
-            msgTxt = itemView.findViewById(R.id.txt_receive);
-            time = itemView.findViewById(R.id.receive_time);
-            name = itemView.findViewById(R.id.receive_name);
-            System.out.println("LEAVING RECEIVEVIEWHOLDER CONSTRUCTOR");
-        }
-
-        void bind(Room message) {
-            System.out.println("BINDER");
-            msgTxt.setText(message.getMsg());
-
-            time.setText("Change this");
-
-            name.setText(message.getSender());
-            System.out.println("LEAVING BINDER");
-        }
-    }*/
 }

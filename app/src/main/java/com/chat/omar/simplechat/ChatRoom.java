@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Calendar;
+import java.util.concurrent.BlockingDeque;
 
 public class ChatRoom extends AppCompatActivity {
 
@@ -112,7 +113,9 @@ public class ChatRoom extends AppCompatActivity {
         hm.put("msg",msg);
         hm.put("suid",suid);
         Date timeSent = Calendar.getInstance().getTime();
-        hm.put("date",timeSent.getHours() + ":" + timeSent.getMinutes());
+        Date timeSent2 = Calendar.getInstance().getTime();
+        hm.put("time",timeSent.getHours() + ":" + timeSent.getMinutes());
+        hm.put("avatar", String.valueOf(user.getPhotoUrl()));
         sendDB.child(chat).push().setValue(hm);
     }
 

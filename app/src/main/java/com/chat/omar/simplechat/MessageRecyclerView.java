@@ -19,7 +19,6 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
 
     private Context context;
     private List<Room> room;
-    private FirebaseUser firebaseUser;
 
     public MessageRecyclerView(Context context,List<Room> room){
         this.context = context;
@@ -77,7 +76,8 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
 
     @Override
     public int getItemViewType(int position) {
-        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        assert firebaseUser != null;
         if(room.get(position).getSuid().equals(firebaseUser.getUid())){
             return 1;
         }else {
@@ -85,12 +85,12 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
         }
     }
 
-    public  class RCViewHolder extends RecyclerView.ViewHolder{
+    class RCViewHolder extends RecyclerView.ViewHolder{
 
-        public TextView msgTxt, time,name;
-        public ImageView avatar;
+        TextView msgTxt, time,name;
+        ImageView avatar;
 
-        public RCViewHolder (View itemView) {
+        RCViewHolder(View itemView) {
             super(itemView);
             if(itemView.getId() == R.id.receive_layout){
                 msgTxt = itemView.findViewById(R.id.txt_receive);

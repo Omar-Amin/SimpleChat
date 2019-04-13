@@ -3,6 +3,7 @@ package com.chat.omar.simplechat;
 import android.content.Intent;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,7 +17,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.w3c.dom.Text;
 
@@ -32,6 +35,7 @@ public class ChatRoom extends AppCompatActivity {
     private FirebaseUser user;
     private DatabaseReference userDB;
     private DatabaseReference rootDB;
+    private DatabaseReference chatRankDB;
     private String name;
     private Intent intent;
     private String roomname;
@@ -39,6 +43,7 @@ public class ChatRoom extends AppCompatActivity {
     private MessageRecyclerView messageRecyclerView;
     private RecyclerView recyclerView;
     private String uid;
+    private boolean deleted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,17 +53,17 @@ public class ChatRoom extends AppCompatActivity {
         rootDB = FirebaseDatabase.getInstance().getReference();
         intent = getIntent();
 
-        switch (intent.getIntExtra("Chatroom",-1)){
-            case 0:
+        switch (intent.getStringExtra("Chatroom")){
+            case "School":
                 roomname = "School";
                 break;
-            case 1:
+            case "Teachers":
                 roomname = "Teachers";
                 break;
-            case 2:
+            case "Students":
                 roomname = "Students";
                 break;
-            case 3:
+            case "Golf club":
                 roomname = "Golf club";
                 break;
             default:
@@ -76,6 +81,7 @@ public class ChatRoom extends AppCompatActivity {
         uid = user.getUid();
 
         userDB = rootDB.child("users").child(uid);
+        chatRankDB = rootDB.child("users").child(uid);
 
         userDB.addValueEventListener(new ValueEventListener() {
             @Override
@@ -104,8 +110,9 @@ public class ChatRoom extends AppCompatActivity {
         System.out.println(name);
     }
 
-    private void sendMsg(String sender,String chat,String msg,String suid){
+    private void sendMsg(String sender, final String chat, String msg, String suid){
         DatabaseReference sendDB = rootDB;
+        DatabaseReference sendPriority = rootDB;
 
         HashMap<String,String> hm = new HashMap<>();
         hm.put("sender",sender);
@@ -113,10 +120,45 @@ public class ChatRoom extends AppCompatActivity {
         hm.put("msg",msg);
         hm.put("suid",suid);
         Date timeSent = Calendar.getInstance().getTime();
-        Date timeSent2 = Calendar.getInstance().getTime();
-        hm.put("time",timeSent.getHours() + ":" + timeSent.getMinutes());
+        String hours = "";
+        String minutes = "";
+        if(timeSent.getHours() < 10){
+            hours = "0" + timeSent.getHours();
+        }
+        if (timeSent.getMinutes() < 10){
+            minutes = "0" + timeSent.getMinutes();
+        }else {
+            hours = "" + timeSent.getHours();
+            minutes = "" + timeSent.getMinutes();
+        }
+        hm.put("time",hours + ":" + minutes);
         hm.put("avatar", String.valueOf(user.getPhotoUrl()));
+        hm.put("msg_token",FirebaseInstanceId.getInstance().getToken());
         sendDB.child(chat).push().setValue(hm);
+        hm.clear();
+        hm.put("chatRanking",chat);
+        switch (chat){
+            case "School":
+                hm.put("description","School chat, school only");
+                break;
+            case "Teachers":
+                hm.put("description","Teachers only chat");
+                break;
+            case "Students":
+                hm.put("description","Students only chat");
+                break;
+            case "Golf club":
+                hm.put("description","Golf chat for everyone who plays golf");
+                break;
+            default:
+                System.out.println("ERROR");
+        }
+        sendDB.child("chatStats").push().setValue(hm);
+
+        //sendNotification(chat,sender,msg);
+    }
+    private void sendNotification(String receiver, final String username, final String message){
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,"ETELLERANDET");
     }
 
     private void receiveMsg(final String chat){
@@ -142,4 +184,5 @@ public class ChatRoom extends AppCompatActivity {
             }
         });
     }
+
 }

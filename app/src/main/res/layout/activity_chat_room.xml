@@ -7,12 +7,15 @@
     android:background="#e6e6e6"
     tools:context=".ChatRoom">
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="2dp"
+    <Button
+        android:id="@+id/subscribe_chat"
+        android:text="Subscrube"
+        android:textSize="14dp"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
         android:background="#dfdfdf"
-        android:layout_marginBottom="0dp"
-        android:id="@+id/viewID" />
+        android:layout_marginBottom="0dp" />
 
 
     <android.support.v7.widget.RecyclerView
@@ -20,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="10dp"
-        android:layout_below="@id/viewID"
+        android:layout_below="@id/subscribe_chat"
         android:layout_above="@id/rl">
     </android.support.v7.widget.RecyclerView>
 

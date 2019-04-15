@@ -37,6 +37,16 @@
                 android:layout_toLeftOf="@id/send_button"
                 android:background="@drawable/upload_button"/>
 
+            <ImageButton
+                android:id="@+id/upload_cam"
+                android:layout_width="45dp"
+                android:layout_height="33dp"
+                android:layout_marginRight="10dp"
+                android:layout_centerInParent="true"
+                android:clickable="true"
+                android:layout_toLeftOf="@id/upload_btn"
+                android:background="@drawable/upload_camera"/>
+
             <EditText
                 android:id="@+id/message_box"
                 android:textColor="#fff"
@@ -46,7 +56,7 @@
                 android:background="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/upload_btn"
+                android:layout_toLeftOf="@id/upload_cam"
                 android:layout_centerVertical="true"
                 android:maxLines="6"/>
 

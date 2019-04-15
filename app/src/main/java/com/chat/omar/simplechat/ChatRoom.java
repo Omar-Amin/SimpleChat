@@ -3,9 +3,13 @@ package com.chat.omar.simplechat;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -31,6 +35,10 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -45,6 +53,7 @@ public class ChatRoom extends AppCompatActivity {
     private RecyclerView recyclerView;
     private String uid;
     private final int UPLOAD_PICTURE = 201;
+    private final int UPLOAD_FROM_CAMERA = 200;
     private Uri path;
     private ProgressDialog progressChat;
 
@@ -91,6 +100,14 @@ public class ChatRoom extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.upload_cam).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(takePicture,UPLOAD_FROM_CAMERA);
+            }
+        });
+
         //Setup for send button
         findViewById(R.id.send_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,6 +140,60 @@ public class ChatRoom extends AppCompatActivity {
                 path = data.getData();
             }
         }
+        if (requestCode == UPLOAD_FROM_CAMERA && resultCode == RESULT_OK){
+            Bundle bundle = data.getExtras();
+            //We extract the picture taken from data, make it as an bytearray
+            //so we can upload it to the storage database
+            if (bundle != null) {
+                Bitmap bitmap = (Bitmap) bundle.get("data");
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                assert bitmap != null;
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                byte[] imageBytes = baos.toByteArray();
+                uploadFromCamera(imageBytes);
+            }
+        }
+    }
+
+    private void uploadFromCamera(byte[] imageBytes){
+        final ProgressDialog progressDialog = new ProgressDialog(ChatRoom.this);
+        progressDialog.setTitle("Uploading...");
+        progressDialog.show();
+
+        Date date = new Date();
+        final int timeSent = (int) date.getTime();
+        final StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("images/" + timeSent);
+        storageReference.putBytes(imageBytes).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @SuppressLint("ShowToast")
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Toast.makeText(ChatRoom.this,"Uploaded",Toast.LENGTH_LONG);
+                path = null; //Changing path to null, so the user doesn't upload the same picture over and over agian
+                //Get the url from image, and send it to the database
+                storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        sendMsg(name,roomname,uid, String.valueOf(uri), String.valueOf(timeSent));
+                    }
+                });
+                progressDialog.dismiss();
+
+            }
+        }).addOnCanceledListener(new OnCanceledListener() {
+            @Override
+            public void onCanceled() {
+                progressDialog.dismiss();
+                path = null;
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @SuppressLint("ShowToast")
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                progressDialog.dismiss();
+                Toast.makeText(ChatRoom.this,"Error uploading picture", Toast.LENGTH_LONG);
+                path = null;
+            }
+        });
     }
 
     private void uploadToStorage(){
@@ -139,7 +210,6 @@ public class ChatRoom extends AppCompatActivity {
             @SuppressLint("ShowToast")
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                progressDialog.dismiss();
                 Toast.makeText(ChatRoom.this,"Uploaded",Toast.LENGTH_LONG);
                 path = null; //Changing path to null, so the user doesn't upload the same picture over and over agian
                 //Get the url from image, and send it to the database
@@ -149,6 +219,7 @@ public class ChatRoom extends AppCompatActivity {
                         sendMsg(name,roomname,uid, String.valueOf(uri), String.valueOf(timeSent));
                     }
                 });
+                progressDialog.dismiss();
 
             }
         }).addOnCanceledListener(new OnCanceledListener() {

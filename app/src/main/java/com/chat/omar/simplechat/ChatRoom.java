@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +11,6 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,53 +23,53 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.RemoteMessage;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import org.w3c.dom.Text;
-
-import java.security.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Calendar;
-import java.util.concurrent.BlockingDeque;
 
 public class ChatRoom extends AppCompatActivity {
 
     private FirebaseUser user;
-    private DatabaseReference userDB;
-    private DatabaseReference rootDB;
-    private DatabaseReference chatRankDB;
-    private StorageReference storRef;
     private String name;
-    private Intent intent;
     private String roomname;
-    private ArrayList<Room> msgs = new ArrayList<>();
     private MessageRecyclerView messageRecyclerView;
     private RecyclerView recyclerView;
     private String uid;
-    private ImageButton uploadImg;
     private final int UPLOAD_PICTURE = 201;
     private Uri path;
-
+    private ProgressDialog progressChat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room);
-        user = FirebaseAuth.getInstance().getCurrentUser(); //TODO: Make it safer (what if user == null)
-        rootDB = FirebaseDatabase.getInstance().getReference();
-        intent = getIntent();
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        //If the user is null, means that session is expired or doesn't have any connection
+        //Throw the user back to login
+        if (user == null){
+            Intent intent = new Intent(ChatRoom.this, LogIn.class);
+            startActivity(intent);
+        }
+        //Used when sending messages, adding elements in the root of database
+        //"path" used for path of image selected
         path = null;
-        roomname = intent.getStringExtra("Chatroom");
 
-        storRef = FirebaseStorage.getInstance().getReference();
+        progressChat = new ProgressDialog(ChatRoom.this);
+        progressChat.setTitle("Loading messages...");
+        progressChat.show();
+
+        //Get from previous activity which room is entered
+        Intent intent = getIntent();
+        roomname = intent.getStringExtra("Chatroom");
 
         recyclerView = findViewById(R.id.room_message);
         recyclerView.setHasFixedSize(true);
@@ -79,38 +77,27 @@ public class ChatRoom extends AppCompatActivity {
         linearLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(linearLayoutManager);
 
-        assert user != null;
+        //Later used when sending messages
         name = user.getDisplayName();
         uid = user.getUid();
 
-        userDB = rootDB.child("users").child(uid);
-        chatRankDB = rootDB.child("users").child(uid);
+        receiveMsg(roomname);
 
-        userDB.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                receiveMsg(roomname);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(ChatRoom.this, "Error loading messages", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        uploadImg = findViewById(R.id.upload_btn);
-        uploadImg.setOnClickListener(new View.OnClickListener() {
+        //Setup for upload button
+        findViewById(R.id.upload_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 choosePicture();
             }
         });
 
+        //Setup for send button
         findViewById(R.id.send_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 TextView msgBox = findViewById(R.id.message_box);
                 String msg = msgBox.getText().toString();
+                //Check what kind of message the user should send: text msg, image msg or both
                 if(!msg.equals("") && path == null){
                     sendMsg(name,roomname,uid,msg,"msg");
                     Toast.makeText(ChatRoom.this, "Message sent", Toast.LENGTH_SHORT).show();
@@ -135,26 +122,27 @@ public class ChatRoom extends AppCompatActivity {
             if(data != null && data.getData() != null){
                 path = data.getData();
             }
-            System.out.println("HALLOOOPATH: " + path);
         }
     }
 
     private void uploadToStorage(){
+        //Progressdialog indicating that something is uploading
         final ProgressDialog progressDialog = new ProgressDialog(ChatRoom.this);
         progressDialog.setTitle("Uploading...");
         progressDialog.show();
+        //When adding a picture with the same name in storage, the picture will disappear
+        //thus using "date" will make it unlikely for it to happen
         Date date = new Date();
         final int timeSent = (int) date.getTime();
-        final StorageReference storageReference = storRef.child("images/" + timeSent);
-
+        final StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("images/" + timeSent);
         storageReference.putFile(path).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @SuppressLint("ShowToast")
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 progressDialog.dismiss();
                 Toast.makeText(ChatRoom.this,"Uploaded",Toast.LENGTH_LONG);
-                path = null;
-
+                path = null; //Changing path to null, so the user doesn't upload the same picture over and over agian
+                //Get the url from image, and send it to the database
                 storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
@@ -181,19 +169,20 @@ public class ChatRoom extends AppCompatActivity {
     }
 
     private void choosePicture() {
+        //Popup to choose an image from your phone
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,"Choose an image"),UPLOAD_PICTURE);
     }
 
-    private void sendMsg(String sender, final String chat,String suid, String msg, String msgType){
-        DatabaseReference sendDB = rootDB;
-        DatabaseReference sendPriority = rootDB;
+    @SuppressLint("ShowToast")
+    private void sendMsg(String sender, final String chat, String suid, String msg, String msgType){
+        DatabaseReference sendDB = FirebaseDatabase.getInstance().getReference();
 
         HashMap<String,String> hm = new HashMap<>();
         hm.put("sender",sender);
-        hm.put("chat",chat); //TODO: work on this later
+        hm.put("chat",chat);
         hm.put("msg",msg);
         hm.put("msgType",msgType);
         hm.put("suid",suid);
@@ -209,11 +198,12 @@ public class ChatRoom extends AppCompatActivity {
         if (timeSent.getMinutes() < 10){
             minutes = "0" + timeSent.getMinutes();
         }
-
         hm.put("time",hours + ":" + minutes);
         hm.put("avatar", String.valueOf(user.getPhotoUrl()));
         hm.put("msg_token",FirebaseInstanceId.getInstance().getToken());
+        //Make room, push all information with the values given in hashmap
         sendDB.child(chat).push().setValue(hm);
+
         hm.clear();
         //Storing the description and chatroom which is used later when ranking the chatrooms
         hm.put("chatRanking",chat);
@@ -231,11 +221,14 @@ public class ChatRoom extends AppCompatActivity {
                 hm.put("description","Golf chat for everyone who plays golf");
                 break;
             default:
-                System.out.println("ERROR");
+                Toast.makeText(ChatRoom.this,"Error, please reload the app",Toast.LENGTH_LONG);
         }
-
+        //In order to check which chat was used the latest
         sendDB.child("chatStats").push().setValue(hm);
 
+        FirebaseMessaging messaging = FirebaseMessaging.getInstance();
+        messaging.subscribeToTopic("Test");
+        messaging.send(new RemoteMessage.Builder(uid + "@gcm.googleapis.com").setMessageId("21").addData("Test","Test").build());
         //sendNotification(chat,sender,msg);
     }
     private void sendNotification(String receiver, final String username, final String message){
@@ -243,25 +236,27 @@ public class ChatRoom extends AppCompatActivity {
     }
 
     private void receiveMsg(final String chat){
-
-        userDB = FirebaseDatabase.getInstance().getReference(chat);
+        //Get all messages from the chatroom
+        DatabaseReference userDB = FirebaseDatabase.getInstance().getReference(chat);
         userDB.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                msgs.clear();
+                ArrayList<Room> msgs = new ArrayList<>();
+
                 for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
                     Room room = snapshot.getValue(Room.class);
                     assert room != null;
                     msgs.add(room);
                 }
-                //TODO: On scrolled, maybe add more to the recycleview?
+
                 messageRecyclerView = new MessageRecyclerView(ChatRoom.this,msgs);
                 recyclerView.setAdapter(messageRecyclerView);
-                System.out.println("HALLO");
+                progressChat.dismiss();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressChat.dismiss();
                 Toast.makeText(ChatRoom.this, "Error receiving message", Toast.LENGTH_SHORT).show();
             }
         });

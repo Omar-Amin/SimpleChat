@@ -35,14 +35,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService{
         adminChannel = new NotificationChannel("ETELLERANDET", adminChannelName, NotificationManager.IMPORTANCE_LOW);
         adminChannel.setDescription(adminChannelDescription);
         adminChannel.enableLights(true);
-        adminChannel.setLightColor(Color.RED);
+        adminChannel.setLightColor(Color.YELLOW);
         adminChannel.enableVibration(true);
         if (notificationManager != null) {
             notificationManager.createNotificationChannel(adminChannel);
         }
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,NOTIFICATION_SERVICE);
-        notificationBuilder.setColor(Color.RED);
+        notificationBuilder.setColor(Color.YELLOW);
         notificationManager.notify(2400,notificationBuilder.build());
     }
 

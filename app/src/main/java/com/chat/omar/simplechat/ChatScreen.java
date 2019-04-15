@@ -1,13 +1,19 @@
 package com.chat.omar.simplechat;
 
+import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.drm.ProcessedData;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
@@ -37,12 +43,17 @@ public class ChatScreen extends AppCompatActivity {
     private String[] listOfCR;
     private String[] description;
     private ArrayList<ChatRanking> tempList = new ArrayList<>();
+    private Button button;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_screen);
+
         setUpFirebase();
+
+        //Predefined rooms and descriptions
         listRooms = new ArrayList<>();
         listRooms.add("School");
         listRooms.add("Golf club");
@@ -50,10 +61,14 @@ public class ChatScreen extends AppCompatActivity {
         listRooms.add("Students");
         listDesc = new ArrayList<>();
         listDesc.add("School chat, school only");
+        listDesc.add("Golf chat for everyone who plays golf");
         listDesc.add("Teachers only chat");
         listDesc.add("Students only chat");
-        listDesc.add("Golf chat for everyone who plays golf");
-
+        //Let the user know that the chatrooms is being sat up
+        progressDialog = new ProgressDialog(ChatScreen.this);
+        progressDialog.setTitle("Setting up chatrooms...");
+        progressDialog.show();
+        //Setting up and sorting the chatrooms
         dataBaseCall();
         //Isn't really usefull, because the list refresh when a data is written to the db
         final SwipeRefreshLayout pullToRefresh = findViewById(R.id.pullToRefresh);
@@ -69,14 +84,16 @@ public class ChatScreen extends AppCompatActivity {
 
     private void dataBaseCall(){
         FirebaseDatabase fbase = FirebaseDatabase.getInstance();
-
-
+        //For every message sent, the room and description is stored in
+        //"chatStats", and the last element on the database is the newest message
+        //so in order to find the latest message sent, we check all the elements in the db
+        //trim out duplicates, revers the list and then make a listview out of it.
         DatabaseReference roomDB = fbase.getReference("chatStats");
         roomDB.addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
+                //Store data in list
                 for (DataSnapshot snapshot:dataSnapshot.getChildren()) {
                     ChatRanking cr = snapshot.getValue(ChatRanking.class);
                     tempList.add(cr);
@@ -124,18 +141,25 @@ public class ChatScreen extends AppCompatActivity {
 
             }
 
+            @SuppressLint("ShowToast")
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(ChatScreen.this,"Error : " + databaseError,Toast.LENGTH_LONG);
+                progressDialog.dismiss();
             }
         });
     }
 
     private void setUpListvew(){
         ListView chatRooms = findViewById(R.id.listOfChat);
-
+        //Making listview by using our own version
         ChatAdapter adapter = new ChatAdapter(this, listOfCR, description);
 
         chatRooms.setAdapter(adapter);
+
+        progressDialog.dismiss();
+        button.setVisibility(View.VISIBLE);
+        button.setVisibility(View.VISIBLE);
 
         chatRooms.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -163,7 +187,6 @@ public class ChatScreen extends AppCompatActivity {
             public void onClick(View view) {
                 fireAuth.signOut();
                 LoginManager.getInstance().logOut();
-
                 updateUI(null);
             }
         });
@@ -184,10 +207,10 @@ public class ChatScreen extends AppCompatActivity {
     }
 
     private void signOut() {
-        // Firebase sign out
+        //Firebase sign out
         fireAuth.signOut();
 
-        // Google sign out
+        //Google sign out
         googleSignInClient.signOut().addOnCompleteListener(this,
                 new OnCompleteListener<Void>() {
                     @Override
@@ -199,15 +222,17 @@ public class ChatScreen extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
+            //Look for the user if he is logged as google or facebook
             for (UserInfo userInfo : user.getProviderData()) {
                 if (userInfo.getProviderId().equals("facebook.com")) {
-                    findViewById(R.id.buttonFacebookSignout).setVisibility(View.VISIBLE);
+                    button = findViewById(R.id.buttonFacebookSignout);
                     return;
                 }
             }
-            findViewById(R.id.buttonGoogleSignout).setVisibility(View.VISIBLE);
+            button = findViewById(R.id.buttonGoogleSignout);
 
         } else {
+            //Failed session, back to LogIn screen
             Intent intent = new Intent(ChatScreen.this, LogIn.class);
             Toast.makeText(ChatScreen.this, "Logged out", Toast.LENGTH_SHORT).show();
             ChatScreen.this.startActivity(intent);

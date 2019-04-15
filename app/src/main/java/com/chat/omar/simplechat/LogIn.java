@@ -1,5 +1,6 @@
 package com.chat.omar.simplechat;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -42,11 +43,14 @@ public class LogIn extends AppCompatActivity {
     private FirebaseAuth fireAuth;
     private GoogleSignInClient googleSignInClient;
     private static final int GOOGLE_SIGN_IN = 8000;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
+        progressDialog = new ProgressDialog(LogIn.this);
+        progressDialog.setTitle("Signing in");
 
         fireAuth = FirebaseAuth.getInstance();
         //Facebook login setup
@@ -56,6 +60,7 @@ public class LogIn extends AppCompatActivity {
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
+                progressDialog.show();
                 handleFacebookAccessToken(loginResult.getAccessToken());
             }
 
@@ -63,6 +68,7 @@ public class LogIn extends AppCompatActivity {
             public void onCancel() {
                 Log.d("FacebookLogin", "facebook:onCancel");
                 Toast.makeText(LogIn.this,"Canceled",Toast.LENGTH_LONG).show();
+                progressDialog.dismiss();
             }
 
             @Override
@@ -72,11 +78,10 @@ public class LogIn extends AppCompatActivity {
             }
         });
 
-
-
         findViewById(R.id.buttonGoogleLogin).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                progressDialog.show();
                 Intent intent = googleSignInClient.getSignInIntent();
                 startActivityForResult(intent, GOOGLE_SIGN_IN);
 
@@ -167,6 +172,7 @@ public class LogIn extends AppCompatActivity {
             LogIn.this.startActivity(intent);
             LogIn.this.finish();
         }
+        progressDialog.dismiss();
     }
 
 }

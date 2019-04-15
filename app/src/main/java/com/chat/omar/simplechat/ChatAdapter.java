@@ -42,6 +42,7 @@ public class ChatAdapter extends BaseAdapter {
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         View v;
         assert inflater != null;
+        //Getting the layout for the single element in listview
         v = inflater.inflate(R.layout.listview_layout,viewGroup,false);
         TextView title,descTitle;
         ImageView image;

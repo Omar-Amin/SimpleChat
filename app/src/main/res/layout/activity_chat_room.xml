@@ -7,28 +7,16 @@
     android:background="#e6e6e6"
     tools:context=".ChatRoom">
 
-    <Button
-        android:id="@+id/subscribe_chat"
-        android:text="Subscrube"
-        android:textSize="14dp"
-        android:layout_alignParentTop="true"
-        android:layout_width="match_parent"
-        android:layout_height="25dp"
-        android:background="#dfdfdf"
-        android:layout_marginBottom="0dp" />
-
-
     <android.support.v7.widget.RecyclerView
         android:id="@+id/room_message"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="10dp"
-        android:layout_below="@id/subscribe_chat"
+        android:background="#fff"
         android:layout_above="@id/rl">
     </android.support.v7.widget.RecyclerView>
 
         <!-- A horizontal line between the chatbox and RecyclerView -->
-
 
         <RelativeLayout
             android:id="@+id/rl"
@@ -36,19 +24,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="#fff"
+            android:background="#0084FF"
             android:layout_alignParentBottom="true">
 
             <ImageButton
                 android:id="@+id/upload_btn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="35dp"
+                android:layout_marginRight="5dp"
+                android:layout_centerInParent="true"
+                android:clickable="true"
+                android:layout_height="35dp"
                 android:layout_toLeftOf="@id/send_button"
                 android:background="@drawable/upload_button"/>
 
             <EditText
                 android:id="@+id/message_box"
-                android:hint="Type here"
+                android:textColor="#fff"
+                android:textColorHint="#F1F1F1"
+                android:hint="Type here..."
                 android:padding="10dp"
                 android:background="@android:color/transparent"
                 android:layout_width="match_parent"
@@ -61,9 +54,10 @@
                 android:id="@+id/send_button"
                 android:text="SEND"
                 android:textSize="14dp"
-                android:background="?attr/selectableItemBackground"
+                android:background="#0084FF"
+                android:textColor="#ffffff"
+                android:clickable="true"
                 android:layout_width="64dp"
-                android:textColor="#000"
                 android:layout_height="48dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true" />

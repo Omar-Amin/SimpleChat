@@ -32,6 +32,10 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
 
     private Context context;
     private List<Room> room;
+    private final int SEND_IMG = 3;
+    private final int RECEIVE_IMG = 2;
+    private final int SEND_TXT = 1;
+    private final int RECEIVE_TXT = 0;
 
     public MessageRecyclerView(Context context,List<Room> room){
         this.context = context;
@@ -41,38 +45,42 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
     @Override
     public MessageRecyclerView.RCViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view;
-        if (viewType == 3){
+        //Check the type of the message, if it is from someone else or you sent it
+        //and make layout based on what type of message it is
+        if (viewType == SEND_IMG){
             view = LayoutInflater.from(context).inflate(R.layout.img_send,parent,false);
             return new MessageRecyclerView.RCViewHolder(view);
-        }else if(viewType == 2){
+        }else if(viewType == RECEIVE_IMG){
             view = LayoutInflater.from(context).inflate(R.layout.img_receive,parent,false);
             return new MessageRecyclerView.RCViewHolder(view);
         }
-        else if(viewType == 1){
+        else if(viewType == SEND_TXT){
             view = LayoutInflater.from(context).inflate(R.layout.send_layout,parent,false);
             return new MessageRecyclerView.RCViewHolder(view);
-        }else{
+        }else if(viewType == RECEIVE_TXT){
             view = LayoutInflater.from(context).inflate(R.layout.receive_layout,parent,false);
             return new MessageRecyclerView.RCViewHolder(view);
         }
+        return null;
     }
 
     @Override
     public void onBindViewHolder(final RCViewHolder holder, final int position) {
         Room msg = room.get(position);
         holder.time.setText(msg.getTime());
-        if(holder.name != null){
+        if(holder.name != null){ //means it is a receive type of message
             holder.name.setText(room.get(position).getSender());
         }
-        if(holder.avatar != null){
+        if(holder.avatar != null){ //means it is a receive type of message
             //Used library in order to get picture from url
             Glide.with(context).load(msg.getAvatar()).into(holder.avatar);
         }
-
+        //Check which type of message it is, image or text
         if (msg.getMsgType().equals("msg")){
             holder.msgTxt.setText(msg.getMsg());
         }else{
-            Glide.with(context).load(msg.getMsg()).into(holder.image);
+            //Using the URL and crop the picture
+            Glide.with(context).load(msg.getMsg()).override(512,512).fitCenter().into(holder.image);
         }
     }
 
@@ -87,24 +95,24 @@ public class MessageRecyclerView extends RecyclerView.Adapter<MessageRecyclerVie
         assert firebaseUser != null;
         Room temp = room.get(position);
         if(temp.getSuid().equals(firebaseUser.getUid()) && !temp.getMsgType().equals("msg")){
-            return 3;
+            return SEND_IMG;
         }else if (!temp.getSuid().equals(firebaseUser.getUid()) && !temp.getMsgType().equals("msg")){
-            return 2;
+            return RECEIVE_IMG;
         }else if( temp.getSuid().equals(firebaseUser.getUid())&& temp.getMsgType().equals("msg")){
-            return 1;
+            return SEND_TXT;
         }else {
-            return 0;
+            return RECEIVE_TXT;
         }
     }
 
     class RCViewHolder extends RecyclerView.ViewHolder{
 
         TextView msgTxt, time,name;
-        ImageView image;
-        ImageView avatar;
+        ImageView avatar,image;
 
         RCViewHolder(View itemView) {
             super(itemView);
+            //Check which layout is created
             if(itemView.getId() == R.id.receive_layout){
                 msgTxt = itemView.findViewById(R.id.txt_receive);
                 time = itemView.findViewById(R.id.receive_time);

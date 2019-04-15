@@ -3,17 +3,14 @@ package com.chat.omar.simplechat;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.drm.ProcessedData;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
@@ -144,7 +141,7 @@ public class ChatScreen extends AppCompatActivity {
             @SuppressLint("ShowToast")
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(ChatScreen.this,"Error : " + databaseError,Toast.LENGTH_LONG);
+                Toast.makeText(ChatScreen.this,"Error : " + databaseError,Toast.LENGTH_LONG).show();
                 progressDialog.dismiss();
             }
         });

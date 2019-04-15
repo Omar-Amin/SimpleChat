@@ -5,11 +5,8 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,16 +26,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.RemoteMessage;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -167,7 +159,7 @@ public class ChatRoom extends AppCompatActivity {
             @SuppressLint("ShowToast")
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(ChatRoom.this,"Uploaded",Toast.LENGTH_LONG);
+                Toast.makeText(ChatRoom.this,"Uploaded",Toast.LENGTH_LONG).show();
                 path = null; //Changing path to null, so the user doesn't upload the same picture over and over agian
                 //Get the url from image, and send it to the database
                 storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -190,7 +182,7 @@ public class ChatRoom extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Exception e) {
                 progressDialog.dismiss();
-                Toast.makeText(ChatRoom.this,"Error uploading picture", Toast.LENGTH_LONG);
+                Toast.makeText(ChatRoom.this,"Error uploading picture", Toast.LENGTH_LONG).show();
                 path = null;
             }
         });
@@ -210,7 +202,7 @@ public class ChatRoom extends AppCompatActivity {
             @SuppressLint("ShowToast")
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(ChatRoom.this,"Uploaded",Toast.LENGTH_LONG);
+                Toast.makeText(ChatRoom.this,"Uploaded",Toast.LENGTH_LONG).show();
                 path = null; //Changing path to null, so the user doesn't upload the same picture over and over agian
                 //Get the url from image, and send it to the database
                 storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -232,7 +224,7 @@ public class ChatRoom extends AppCompatActivity {
             @SuppressLint("ShowToast")
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(ChatRoom.this,"Error uploading picture", Toast.LENGTH_LONG);
+                Toast.makeText(ChatRoom.this,"Error uploading picture", Toast.LENGTH_LONG).show();
                 path = null;
                 progressDialog.dismiss();
             }
@@ -292,18 +284,11 @@ public class ChatRoom extends AppCompatActivity {
                 hm.put("description","Golf chat for everyone who plays golf");
                 break;
             default:
-                Toast.makeText(ChatRoom.this,"Error, please reload the app",Toast.LENGTH_LONG);
+                Toast.makeText(ChatRoom.this,"Error, please reload the app",Toast.LENGTH_LONG).show();
         }
         //In order to check which chat was used the latest
         sendDB.child("chatStats").push().setValue(hm);
 
-        FirebaseMessaging messaging = FirebaseMessaging.getInstance();
-        messaging.subscribeToTopic("Test");
-        messaging.send(new RemoteMessage.Builder(uid + "@gcm.googleapis.com").setMessageId("21").addData("Test","Test").build());
-        //sendNotification(chat,sender,msg);
-    }
-    private void sendNotification(String receiver, final String username, final String message){
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,"ETELLERANDET");
     }
 
     private void receiveMsg(final String chat){

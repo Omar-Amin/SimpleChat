@@ -2,23 +2,17 @@ package com.chat.omar.simplechat;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -34,15 +28,13 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.UserInfo;
-
 
 public class LogIn extends AppCompatActivity {
 
     private CallbackManager callbackManager;
     private FirebaseAuth fireAuth;
     private GoogleSignInClient googleSignInClient;
-    private static final int GOOGLE_SIGN_IN = 8000;
+    private final int GOOGLE_SIGN_IN = 8000;
     private ProgressDialog progressDialog;
 
     @Override
@@ -114,11 +106,12 @@ public class LogIn extends AppCompatActivity {
                 firebaseAuthWithGoogle(account);
             } catch (ApiException e) {
                 // Google Sign In failed, update UI appropriately
-                System.out.println("CATCH");
+                Toast.makeText(LogIn.this,"Google sign in failed",Toast.LENGTH_LONG).show();
                 updateUI(null);
             }
         }
     }
+
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
 
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
@@ -132,6 +125,7 @@ public class LogIn extends AppCompatActivity {
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
+                            Toast.makeText(LogIn.this, "Google sign in failed", Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
                     }
@@ -159,6 +153,7 @@ public class LogIn extends AppCompatActivity {
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
+                            Toast.makeText(LogIn.this, "Facebook sign in failed", Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
 

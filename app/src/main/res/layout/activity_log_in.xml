@@ -41,7 +41,7 @@
         android:layout_marginBottom="8dp"
         android:background="#0084FF"
         android:paddingHorizontal="15dp"
-        android:text="sign_in with google"
+        android:text="sign in with google"
         android:textColor="#ffffff"
         app:layout_constraintBottom_toTopOf="@+id/buttonGoogleSignout"
         app:layout_constraintEnd_toEndOf="parent"

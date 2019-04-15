@@ -1,15 +1,14 @@
 package com.chat.omar.simplechat;
 
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -25,33 +24,35 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 
 public class ChatScreen extends AppCompatActivity {
     private FirebaseAuth fireAuth;
     private GoogleSignInClient googleSignInClient;
-    private ListView chatRooms;
-    private ChatAdapter adapter;
+    private ArrayList<String> listRooms;
+    private ArrayList<String> listDesc;
     private String[] listOfCR;
     private String[] description;
-    private int[] recentMessages;
-    private BlockingDeque<String> blockingDeque = new LinkedBlockingDeque<>();
     private ArrayList<ChatRanking> tempList = new ArrayList<>();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_screen);
-
         setUpFirebase();
-
-
+        listRooms = new ArrayList<>();
+        listRooms.add("School");
+        listRooms.add("Golf club");
+        listRooms.add("Teachers");
+        listRooms.add("Students");
+        listDesc = new ArrayList<>();
+        listDesc.add("School chat, school only");
+        listDesc.add("Teachers only chat");
+        listDesc.add("Students only chat");
+        listDesc.add("Golf chat for everyone who plays golf");
 
         dataBaseCall();
         //Isn't really usefull, because the list refresh when a data is written to the db
@@ -75,35 +76,50 @@ public class ChatScreen extends AppCompatActivity {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
                 for (DataSnapshot snapshot:dataSnapshot.getChildren()) {
                     ChatRanking cr = snapshot.getValue(ChatRanking.class);
-                    System.out.println("CHATRANKING : " + cr.getChatRanking());
                     tempList.add(cr);
                 }
-                ArrayList<String> trimmed = new ArrayList<>();
-                ArrayList<ChatRanking> ls = new ArrayList<>();
-                String chats;
+
+                ArrayList<String> nameHolder = new ArrayList<>();
+                ArrayList<ChatRanking> trimmed = new ArrayList<>();
+                //Remove duplicates by making two list, one for storing
+                // the ChatRanking object and name of the chatroom in string
                 Collections.reverse(tempList);
                 for (int i = 0; i < tempList.size(); i++) {
-                    if(!trimmed.contains(tempList.get(i).getChatRanking())){
-                        trimmed.add(tempList.get(i).getChatRanking());
-                        ls.add(tempList.get(i));
+                    if(!nameHolder.contains(tempList.get(i).getChatRanking())){
+                        nameHolder.add(tempList.get(i).getChatRanking());
+                        trimmed.add(tempList.get(i));
                     }
-                    System.out.println("INSIDE ARRAYLIST: " + tempList.get(i));
-                }
-                if(ls.size() > 3 ){
-                    listOfCR = new String[ls.size()];
-                    description = new String[ls.size()];
-                    for (int i = 0; i < ls.size(); i++) {
-                        listOfCR[i] = ls.get(i).getChatRanking();
-                        description[i] = ls.get(i).getDescription();
-                    }
-                }else{
-                    listOfCR = new String[]{"School", "Golf club", "Students", "Teachers"};
-                    description = new String[]{"s","s","s","s"};
                 }
 
-
+                listOfCR = new String[listRooms.size()];
+                description = new String[listDesc.size()];
+                //Making sure that if the database isn't used yet, the chatrooms that isn't yet used still works
+                if(trimmed.size() < listRooms.size()){
+                    for (int i = 0; i < trimmed.size(); i++) {
+                        listOfCR[i] = trimmed.get(i).getChatRanking();
+                        description[i] = trimmed.get(i).getDescription();
+                    }
+                    //Checking what is missing, and adding them to the list
+                    int arrayCounter = 0;
+                    int listCounter = trimmed.size();
+                    for (String s:listRooms) {
+                        if(!nameHolder.contains(s)){
+                            listOfCR[listCounter] = listRooms.get(arrayCounter);
+                            description[listCounter] = listDesc.get(arrayCounter);
+                            listCounter++;
+                        }
+                        arrayCounter++;
+                    }
+                }else{ //If all chats are used, then no need for all that
+                    for (int i = 0; i < trimmed.size(); i++) {
+                        listOfCR[i] = trimmed.get(i).getChatRanking();
+                        description[i] = trimmed.get(i).getDescription();
+                    }
+                }
+                //Making adapter by calling ChatAdapter (own version of the ListView)
                 setUpListvew();
 
             }
@@ -115,9 +131,9 @@ public class ChatScreen extends AppCompatActivity {
     }
 
     private void setUpListvew(){
-        chatRooms = findViewById(R.id.listOfChat);
+        ListView chatRooms = findViewById(R.id.listOfChat);
 
-        adapter = new ChatAdapter(this,listOfCR,description);
+        ChatAdapter adapter = new ChatAdapter(this, listOfCR, description);
 
         chatRooms.setAdapter(adapter);
 
@@ -189,11 +205,11 @@ public class ChatScreen extends AppCompatActivity {
                     return;
                 }
             }
-
             findViewById(R.id.buttonGoogleSignout).setVisibility(View.VISIBLE);
 
         } else {
             Intent intent = new Intent(ChatScreen.this, LogIn.class);
+            Toast.makeText(ChatScreen.this, "Logged out", Toast.LENGTH_SHORT).show();
             ChatScreen.this.startActivity(intent);
             ChatScreen.this.finish();
         }

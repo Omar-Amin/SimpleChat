@@ -4,9 +4,10 @@ public class Room {
     private String sender;
     private String chat;
     private String msg;
-    private String suid;
+    private String msgType;
     private String time;
     private String avatar;
+    private String suid;
 
     public Room() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
@@ -20,8 +21,8 @@ public class Room {
         return avatar;
     }
 
-    public String getSuid() {
-        return suid;
+    public String getMsgType() {
+        return msgType;
     }
 
     public String getSender() {
@@ -40,4 +41,7 @@ public class Room {
         return msg;
     }
 
+    public String getSuid() {
+        return suid;
+    }
 }

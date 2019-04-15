@@ -1,5 +1,6 @@
 package com.chat.omar.simplechat;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,10 +36,12 @@ public class ChatAdapter extends BaseAdapter {
         return i;
     }
 
+    @SuppressLint("ViewHolder")
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         View v;
+        assert inflater != null;
         v = inflater.inflate(R.layout.listview_layout,viewGroup,false);
         TextView title,descTitle;
         ImageView image;

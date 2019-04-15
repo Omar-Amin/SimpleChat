@@ -39,6 +39,13 @@
             android:background="#fff"
             android:layout_alignParentBottom="true">
 
+            <ImageButton
+                android:id="@+id/upload_btn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_toLeftOf="@id/send_button"
+                android:background="@drawable/upload_button"/>
+
             <EditText
                 android:id="@+id/message_box"
                 android:hint="Type here"
@@ -46,7 +53,7 @@
                 android:background="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/send_button"
+                android:layout_toLeftOf="@id/upload_btn"
                 android:layout_centerVertical="true"
                 android:maxLines="6"/>
 
@@ -56,6 +63,7 @@
                 android:textSize="14dp"
                 android:background="?attr/selectableItemBackground"
                 android:layout_width="64dp"
+                android:textColor="#000"
                 android:layout_height="48dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true" />

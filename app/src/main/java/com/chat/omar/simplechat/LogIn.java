@@ -38,11 +38,10 @@ import com.google.firebase.auth.UserInfo;
 
 public class LogIn extends AppCompatActivity {
 
-    private Button logInButton;
     private CallbackManager callbackManager;
     private FirebaseAuth fireAuth;
     private GoogleSignInClient googleSignInClient;
-    private static final int RC_SIGN_IN = 9001;
+    private static final int GOOGLE_SIGN_IN = 8000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,20 +56,18 @@ public class LogIn extends AppCompatActivity {
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                Log.d("FacebookLogin", "facebook:onSuccess:" + loginResult);
                 handleFacebookAccessToken(loginResult.getAccessToken());
             }
 
             @Override
             public void onCancel() {
                 Log.d("FacebookLogin", "facebook:onCancel");
-                System.out.println("Cancel");
+                Toast.makeText(LogIn.this,"Canceled",Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onError(FacebookException error) {
-                Log.d("FacebookLogin", "facebook:onError",error);
-                System.out.println("Error");
+                Toast.makeText(LogIn.this,"Error",Toast.LENGTH_LONG).show();
                 updateUI(null);
             }
         });
@@ -80,8 +77,8 @@ public class LogIn extends AppCompatActivity {
         findViewById(R.id.buttonGoogleLogin).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent signInIntent = googleSignInClient.getSignInIntent();
-                startActivityForResult(signInIntent, RC_SIGN_IN);
+                Intent intent = googleSignInClient.getSignInIntent();
+                startActivityForResult(intent, GOOGLE_SIGN_IN);
 
             }
         });
@@ -103,7 +100,7 @@ public class LogIn extends AppCompatActivity {
         callbackManager.onActivityResult(requestCode, resultCode, data);
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
+        if (requestCode == GOOGLE_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 // Google Sign In was successful, authenticate with Firebase
@@ -131,7 +128,6 @@ public class LogIn extends AppCompatActivity {
                         } else {
                             // If sign in fails, display a message to the user.
                             updateUI(null);
-                            System.out.println("WENT WRONG");
                         }
                     }
                 });
@@ -154,6 +150,7 @@ public class LogIn extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             FirebaseUser user = fireAuth.getCurrentUser();
+                            Toast.makeText(LogIn.this, "Logged in", Toast.LENGTH_SHORT).show();
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.

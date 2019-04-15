@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:padding="8dp"
+    android:layout_height="wrap_content"
+    android:id="@+id/img_receive_layout">
+
+    <ImageView
+        android:id="@+id/img_profile"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginLeft="8dp"
+        android:background="#BCBDC3"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:id="@+id/receive_name"
+        android:text="Filler"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_toRightOf="@id/img_profile"
+        android:layout_marginLeft="8dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="4dp" />
+
+    <ImageView
+        android:id="@+id/img_receive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/receive_name"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_toRightOf="@id/img_profile"
+        android:adjustViewBounds="true"
+        android:maxWidth="240dp"
+        android:padding="8dp"
+        android:textColor="#000"/>
+
+    <TextView
+        android:id="@+id/receive_time"
+        android:text="00:00"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/img_receive"
+        android:textSize="10sp"
+        android:layout_below="@id/img_receive"
+        android:layout_marginLeft="4dp" />
+
+</RelativeLayout>
